@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>sceptre.config.reader &mdash; Sceptre 2.0.3 documentation</title>
+  <title>sceptre.config.reader &mdash; Sceptre 2.1.0 documentation</title>
   
 
   
@@ -23,7 +23,7 @@
       <script type="text/javascript">
           var DOCUMENTATION_OPTIONS = {
               URL_ROOT:'../../../',
-              VERSION:'2.0.3',
+              VERSION:'2.1.0',
               LANGUAGE:'None',
               COLLAPSE_INDEX:false,
               FILE_SUFFIX:'.html',
@@ -204,6 +204,7 @@
 <span class="kn">from</span> <span class="nn">packaging.version</span> <span class="k">import</span> <span class="n">Version</span>
 
 <span class="kn">from</span> <span class="nn">sceptre</span> <span class="k">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">sceptre.exceptions</span> <span class="k">import</span> <span class="n">InvalidConfigFileError</span>
 <span class="kn">from</span> <span class="nn">sceptre.exceptions</span> <span class="k">import</span> <span class="n">InvalidSceptreDirectoryError</span>
 <span class="kn">from</span> <span class="nn">sceptre.exceptions</span> <span class="k">import</span> <span class="n">VersionIncompatibleError</span>
 <span class="kn">from</span> <span class="nn">sceptre.exceptions</span> <span class="k">import</span> <span class="n">ConfigFileNotFoundError</span>
@@ -263,6 +264,19 @@
         <span class="s2">&quot;stack_tags&quot;</span><span class="p">,</span>
         <span class="s2">&quot;stack_timeout&quot;</span>
     <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">INTERNAL_CONFIG_ATTRIBUTES</span> <span class="o">=</span> <span class="n">ConfigAttributes</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;project_path&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;stack_group_path&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">REQUIRED_KEYS</span> <span class="o">=</span> <span class="n">STACK_GROUP_CONFIG_ATTRIBUTES</span><span class="o">.</span><span class="n">required</span><span class="o">.</span><span class="n">union</span><span class="p">(</span>
+    <span class="n">STACK_CONFIG_ATTRIBUTES</span><span class="o">.</span><span class="n">required</span>
 <span class="p">)</span>
 
 
@@ -346,7 +360,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Traverses the files under the command path.</span>
 <span class="sd">        For each file encountered, a Stack is constructed</span>
-<span class="sd">        using the correct config. Depependencies are traversed</span>
+<span class="sd">        using the correct config. Dependencies are traversed</span>
 <span class="sd">        and a final set of Stacks is returned.</span>
 
 <span class="sd">        :returns: A set of Stacks.</span>
@@ -608,6 +622,16 @@
         <span class="n">parsed_stack_group_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsed_stack_group_config</span><span class="p">(</span><span class="n">stack_group_config</span><span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">rel_path</span><span class="p">,</span> <span class="n">stack_group_config</span><span class="p">)</span>
         <span class="n">stack_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">rel_path</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Check for missing mandatory attributes</span>
+        <span class="k">for</span> <span class="n">required_key</span> <span class="ow">in</span> <span class="n">REQUIRED_KEYS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">required_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidConfigFileError</span><span class="p">(</span>
+                    <span class="s2">&quot;Required attribute &#39;</span><span class="si">{0}</span><span class="s2">&#39; not found in configuration of &#39;</span><span class="si">{1}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">required_key</span><span class="p">,</span> <span class="n">stack_name</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
         <span class="n">abs_template_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">templates_path</span><span class="p">,</span>
             <span class="n">config</span><span class="p">[</span><span class="s2">&quot;template_path&quot;</span><span class="p">]</span>
