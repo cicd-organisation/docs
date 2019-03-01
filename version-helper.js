@@ -1,1 +1,1 @@
-let versions = ['stable', 'latest', 'dev', '99.2.2', '98.2.2', '.git'];
+let versions = ['dev', '99.2.2', '98.2.2'];
